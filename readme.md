@@ -22,4 +22,4 @@ python frontend.py
 - **Sentence Transformers** (Embeddings)  
 - **Streamlit** (UI)  
 
-![alt text](<WhatsApp Image 2025-03-08 at 15.42.28_af472827.jpg>)
+![alt text](<img>)
