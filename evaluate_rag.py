@@ -179,7 +179,7 @@ def run_benchmark():
     for test in test_cases:
         query = test["query"]
         q_emb = EmbeddingManager.encode_query(query)
-        retrieved = store.similarity_search(q_emb, top_k=top_k, score_threshold=score_threshold)
+        retrieved = store.similarity_search(q_emb, query_text=query, top_k=top_k, score_threshold=score_threshold)
 
         print(f"[{test['id']}] {test['category']}")
         print(f"  Query: \"{query}\"")

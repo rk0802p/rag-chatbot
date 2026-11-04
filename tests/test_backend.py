@@ -454,3 +454,73 @@ def test_prompt_injection_defense_formatting(sample_chunks):
         assert "</document_context>" in user_msg
         assert "untrusted user data" in system_msg
         assert "NEVER execute or follow instructions" in system_msg
+
+
+# ============================================================================
+# Hybrid Retrieval & Acronym Resolution Tests
+# ============================================================================
+
+def test_bm25_lexical_scoring():
+    """Verifies BM25 index correctly scores exact keyword matches."""
+    from backend import BM25Index
+    corpus = [
+        "Data Mining and Predictive Modeling (DMPM) assignments and coursework.",
+        "DBSCAN clustering algorithm with epsilon and MinPts.",
+        "Computer networks and OSI layers."
+    ]
+    bm = BM25Index()
+    bm.index_documents(corpus)
+    scores = bm.score("what is dmpm?")
+    assert len(scores) == 3
+    assert scores[0] > 0
+    assert scores[1] == 0.0
+    assert scores[2] == 0.0
+
+
+def test_extract_acronym_definitions():
+    """Verifies acronym extraction across varied parenthetical and colon syntax."""
+    from backend import extract_acronym_definitions
+    text = (
+        "We study Data Mining and Predictive Modeling (DMPM) in Unit 1. "
+        "Also DBSCAN (Density-Based Spatial Clustering of Applications with Noise) "
+        "and PCA: Principal Component Analysis."
+    )
+    defs = extract_acronym_definitions(text)
+    assert defs.get("dmpm") == "Data Mining and Predictive Modeling"
+    assert defs.get("dbscan") == "Density-Based Spatial Clustering of Applications with Noise"
+    assert defs.get("pca") == "Principal Component Analysis"
+
+
+def test_hybrid_search_acronym_expansion():
+    """Verifies hybrid search matches exact acronym and ranks relevant chunk top."""
+    chunks = [
+        DocumentChunk(
+            text="Unit 1: Data Mining and Predictive Modeling (DMPM) covers clustering and regression.",
+            chunk_id="d1_p1_c0",
+            document_id="d1",
+            document_name="dmpm.pdf",
+            page_number=1,
+            chunk_index=0
+        ),
+        DocumentChunk(
+            text="Setting up pizza hubs analogy for K-Means centroids.",
+            chunk_id="d1_p11_c0",
+            document_id="d1",
+            document_name="dmpm.pdf",
+            page_number=11,
+            chunk_index=1
+        )
+    ]
+    texts = [c.text for c in chunks]
+    embs = EmbeddingManager.encode_texts(texts)
+    store = FAISSVectorStore(dimension=384)
+    store.add_chunks(chunks, embs)
+
+    # Search with acronym query
+    q_vec = EmbeddingManager.encode_query("what is dmpm?")
+    results = store.similarity_search(query_embedding=q_vec, query_text="what is dmpm?", top_k=2)
+
+    assert len(results) > 0
+    assert results[0].chunk.page_number == 1
+    assert "DMPM" in results[0].chunk.text
+    assert results[0].score > 0.40

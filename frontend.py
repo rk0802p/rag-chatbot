@@ -164,6 +164,7 @@ with st.sidebar:
         step=0.05,
         help="Cosine similarity score cutoff (-1.0 to 1.0)"
     )
+    st.caption("⚡ **Hybrid Search Active:** Dense FAISS + Sparse BM25 + Acronym Resolution")
 
     st.divider()
 

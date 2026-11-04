@@ -62,13 +62,15 @@ flowchart TD
 
 ## 🚀 Key Engineering Highlights
 
-- **Zero-Key Built-in Synthesizer & Multi-Provider LLM Support:** Works 100% out of the box with zero external API keys or subscriptions using the built-in offline semantic synthesizer. Seamlessly switch in the sidebar to cloud models (OpenAI `gpt-4o-mini`, `gpt-4o`, Groq `llama-3.3-70b-versatile`) or **100% local models** (Ollama `llama3.2`, LM Studio) with zero code changes.
+- **Hybrid Retrieval Engine (Dense FAISS + Sparse BM25Okapi):** Combines dense semantic vector search (`all-MiniLM-L6-v2`) with in-memory BM25 lexical search and exact keyword boosting, eliminating retrieval failures on technical acronyms, codes, formulas, and domain jargon.
+- **Automated Acronym Resolution:** Automatically detects parenthetical and title-cased acronym definitions in document text (e.g. *Data Mining and Predictive Modeling (DMPM)*) and expands short user queries to bridge the semantic embedding gap.
+- **Direct Answer Extractor & Zero-Key Synthesizer:** When operating offline or without an API key, extracts the most salient direct answer sentence with definitional pattern recognition, followed by structured supporting evidence and page citations.
+- **Multi-Provider LLM Support:** Seamlessly switch in the sidebar between the free built-in engine, cloud models (OpenAI `gpt-4o-mini`, `gpt-4o`, Groq `llama-3.3-70b-versatile`), and local models (Ollama `llama3.2`, LM Studio).
 - **Automated Citation Verification:** Implements an automated citation audit utility (`verify_citations`) that extracts cited page numbers from the generated answer and validates them against the retrieved passage set, alerting the user if an LLM hallucinates an unretrieved page number.
 - **Prompt Injection Defense:** Defends against document-embedded jailbreaks by encapsulating retrieved text inside strict `<document_context>` XML boundaries and explicitly instructing the LLM to treat document content as untrusted data rather than instructions.
 - **Boundary-Aware Recursive Chunking:** Hierarchical text splitting respecting paragraphs ($\to$ newlines $\to$ sentences $\to$ words), preventing token fragmentation and attaching complete provenance records to every chunk.
 - **Safe Vector Persistence:** Replaced vulnerable Python `pickle` deserialization with native binary `faiss.write_index()` and synchronized JSON metadata, complete with vector count integrity checks.
 - **Streamlit Session State Isolation:** Uploaded documents are fingerprinted with SHA-256; ingestion occurs strictly **once per document**. Chat interactions run entirely in-memory without file buffer exhaustion or disk leakage.
-- **Zero-Configuration Out-of-the-Box Operation:** Anyone visiting the app can immediately upload a PDF and ask questions — the built-in engine synthesizes answers and cites source pages without requiring any API keys or credit cards.
 
 ---
 
@@ -78,10 +80,10 @@ flowchart TD
 |---|---|---|
 | **Document Parser** | PyMuPDF (`fitz`) | `1.26.3` — High-speed page-by-page extraction with magic byte validation |
 | **Embeddings** | Sentence Transformers | `all-MiniLM-L6-v2` (384-dimensional, $L_2$-normalized float32 vectors) |
-| **Vector Engine** | FAISS | `faiss-cpu` (`IndexFlatIP` for Cosine Similarity) |
+| **Vector & Lexical Engine** | FAISS + BM25Okapi | `faiss-cpu` (`IndexFlatIP`) + In-Memory BM25 Lexical Index |
 | **LLM Orchestration** | OpenAI SDK | OpenAI, Groq, Ollama, LM Studio compatible |
 | **Web Interface** | Streamlit | `1.43.2` — Multi-turn chat UI with session caching |
-| **Testing & QA** | Pytest | 23 automated unit, integration, and security tests |
+| **Testing & QA** | Pytest | 26 automated unit, integration, and security tests |
 
 ---
 
@@ -153,13 +155,13 @@ Open `http://localhost:8501` to use the containerized application.
 
 ### 1. Automated Test Suite (Pytest)
 
-Run the 23 automated unit and integration tests (validating extraction, chunking, embeddings, indexing, persistence, retrieval, citation verification, prompt injection defense, and mocked LLM generation):
+Run the 26 automated unit and integration tests (validating extraction, chunking, embeddings, indexing, persistence, retrieval, citation verification, prompt injection defense, BM25 scoring, acronym expansion, and mocked LLM generation):
 
 ```bash
 python -m pytest -v
 ```
 
-**Status:** `23 passed in 20.83s` (100% pass rate).
+**Status:** `26 passed in 14.91s` (100% pass rate).
 
 ### 2. Information Retrieval & Groundedness Benchmark
 
