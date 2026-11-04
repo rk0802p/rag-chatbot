@@ -292,15 +292,16 @@ def test_faiss_load_tamper_detection(sample_chunks, tmp_path):
 # ============================================================================
 
 def test_llm_client_missing_api_key(sample_chunks):
-    """Verifies graceful fallback when OPENAI_API_KEY is not set."""
+    """Verifies graceful fallback to built-in extractive synthesizer when OPENAI_API_KEY is not set."""
     client = LLMClient(api_key=None)
     with patch.dict(os.environ, {}, clear=True):
         retrieval_results = [RetrievalResult(chunk=sample_chunks[0], score=0.85)]
         response = client.generate_grounded_answer("What sat on the mat?", retrieval_results)
 
-        assert not response.is_grounded
-        assert "Configuration Notice" in response.answer
+        assert response.is_grounded
+        assert response.model_used == "builtin-extractive-synthesizer"
         assert "Page 1" in response.answer
+        assert "cat sat on the mat" in response.answer.lower()
 
 
 def test_llm_client_empty_retrieval():

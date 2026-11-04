@@ -62,13 +62,13 @@ flowchart TD
 
 ## 🚀 Key Engineering Highlights
 
-- **Multi-Provider LLM Support:** Native support for cloud models (OpenAI `gpt-4o-mini`, `gpt-4o`, Groq `llama-3.3-70b-versatile`) and **100% local models** (Ollama `llama3.2`, LM Studio) with zero code changes.
+- **Zero-Key Built-in Synthesizer & Multi-Provider LLM Support:** Works 100% out of the box with zero external API keys or subscriptions using the built-in offline semantic synthesizer. Seamlessly switch in the sidebar to cloud models (OpenAI `gpt-4o-mini`, `gpt-4o`, Groq `llama-3.3-70b-versatile`) or **100% local models** (Ollama `llama3.2`, LM Studio) with zero code changes.
 - **Automated Citation Verification:** Implements an automated citation audit utility (`verify_citations`) that extracts cited page numbers from the generated answer and validates them against the retrieved passage set, alerting the user if an LLM hallucinates an unretrieved page number.
 - **Prompt Injection Defense:** Defends against document-embedded jailbreaks by encapsulating retrieved text inside strict `<document_context>` XML boundaries and explicitly instructing the LLM to treat document content as untrusted data rather than instructions.
 - **Boundary-Aware Recursive Chunking:** Hierarchical text splitting respecting paragraphs ($\to$ newlines $\to$ sentences $\to$ words), preventing token fragmentation and attaching complete provenance records to every chunk.
 - **Safe Vector Persistence:** Replaced vulnerable Python `pickle` deserialization with native binary `faiss.write_index()` and synchronized JSON metadata, complete with vector count integrity checks.
 - **Streamlit Session State Isolation:** Uploaded documents are fingerprinted with SHA-256; ingestion occurs strictly **once per document**. Chat interactions run entirely in-memory without file buffer exhaustion or disk leakage.
-- **Offline Retrieval Preview Mode:** When running without an API key, the chatbot automatically falls back to interactive passage retrieval, displaying matched chunks, page numbers, and similarity scores.
+- **Zero-Configuration Out-of-the-Box Operation:** Anyone visiting the app can immediately upload a PDF and ask questions — the built-in engine synthesizes answers and cites source pages without requiring any API keys or credit cards.
 
 ---
 

@@ -544,6 +544,110 @@ def verify_citations(answer: str, retrieved_results: List[RetrievalResult]) -> D
 
 
 # ============================================================================
+# Built-in Free Semantic Synthesizer (Zero API Keys Required)
+# ============================================================================
+
+class BuiltinSynthesizer:
+    """
+    Built-in offline intelligent extractive synthesizer.
+    Generates coherent, structured answers with page citations directly from
+    retrieved context using semantic sentence-level saliency ranking.
+    Requires ZERO API keys, zero external network calls, and runs in milliseconds.
+    """
+
+    @staticmethod
+    def synthesize_answer(
+        query: str,
+        retrieved_results: List[RetrievalResult]
+    ) -> RAGResponse:
+        import re
+        if not retrieved_results:
+            return RAGResponse(
+                answer="The provided document does not contain sufficient information to answer this question.",
+                sources=[],
+                context_text="",
+                is_grounded=True,
+                model_used="builtin-extractive-synthesizer",
+                citation_validation={"cited_pages": [], "retrieved_pages": [], "is_valid": True}
+            )
+
+        q_vec = EmbeddingManager.encode_query(query)
+
+        # Collect salient sentences grouped by page
+        page_summaries: Dict[int, List[str]] = {}
+        all_cited_pages = set()
+
+        for res in retrieved_results:
+            chunk = res.chunk
+            page_num = chunk.page_number
+            # Split text into sentences
+            raw_sentences = [
+                s.strip()
+                for s in re.split(r'(?<=[.!?])\s+', chunk.text)
+                if len(s.strip()) > 15
+            ]
+            if not raw_sentences:
+                continue
+
+            s_vecs = EmbeddingManager.encode_texts(raw_sentences)
+            scores = (s_vecs @ q_vec.T).flatten()
+
+            # Rank sentences by relevance to the question
+            ranked = sorted(zip(scores, raw_sentences), key=lambda x: x[0], reverse=True)
+            # Pick top sentences that meet minimum relevance threshold
+            top_sentences = [s for score, s in ranked if score >= 0.15][:2]
+
+            if top_sentences:
+                if page_num not in page_summaries:
+                    page_summaries[page_num] = []
+                    all_cited_pages.add(page_num)
+                for s in top_sentences:
+                    if s not in page_summaries[page_num]:
+                        page_summaries[page_num].append(s)
+
+        if not page_summaries:
+            # Fallback to top chunk snippet if sentence splitting was too sparse
+            top_chunk = retrieved_results[0].chunk
+            answer_text = (
+                f"Based on **{top_chunk.document_name}** [Page {top_chunk.page_number}]:\n\n"
+                f"> \"{top_chunk.text[:300]}...\"\n\n"
+                f"*(Synthesized by built-in document engine)*"
+            )
+            all_cited_pages.add(top_chunk.page_number)
+        else:
+            lines = ["Based on the relevant passages in your document, here are the key findings:\n"]
+            for p_num in sorted(page_summaries.keys()):
+                joined_p = " ".join(page_summaries[p_num])
+                lines.append(f"• **[Page {p_num}]**: {joined_p}")
+
+            lines.append("\n*(Synthesized by built-in document engine. Connect an OpenAI or Groq API key in the sidebar for conversational generative AI)*")
+            answer_text = "\n\n".join(lines)
+
+        context_blocks = [
+            f"[Source: {r.chunk.document_name} | Page {r.chunk.page_number} | Score: {r.score:.2f}]:\n{r.chunk.text}"
+            for r in retrieved_results
+        ]
+        context_text = "\n\n---\n\n".join(context_blocks)
+
+        citation_info = {
+            "cited_pages": sorted(list(all_cited_pages)),
+            "retrieved_pages": sorted(list({r.chunk.page_number for r in retrieved_results})),
+            "valid_citations": sorted(list(all_cited_pages)),
+            "hallucinated_citations": [],
+            "is_valid": True
+        }
+
+        return RAGResponse(
+            answer=answer_text,
+            sources=retrieved_results,
+            context_text=context_text,
+            is_grounded=True,
+            model_used="builtin-extractive-synthesizer",
+            citation_validation=citation_info
+        )
+
+
+# ============================================================================
 # LLM Generation & Grounded Question Answering
 # ============================================================================
 
@@ -627,22 +731,9 @@ class LLMClient:
 
         user_content = f"<document_context>\n{context_text}\n</document_context>\n\nUser Question: {query}"
 
-        # If API key is not configured, return an informative fallback without crashing
+        # If API key is not configured and not using local base_url, use the built-in offline synthesizer!
         if not self.is_configured():
-            mock_answer = (
-                "**[Configuration Notice]** OpenAI API key (`OPENAI_API_KEY`) is not configured. "
-                "Here are the top retrieved passages from your document that match your query:\n\n"
-                + "\n\n".join([f"- **Page {r.chunk.page_number}** (Relevance: {r.score:.2f}): {r.chunk.text}" for r in retrieved_results])
-                + "\n\n*Configure `OPENAI_API_KEY` in your `.env` or sidebar to enable full AI synthesis.*"
-            )
-            return RAGResponse(
-                answer=mock_answer,
-                sources=retrieved_results,
-                context_text=context_text,
-                is_grounded=False,
-                model_used="none (retrieval-only)",
-                citation_validation={"cited_pages": [], "retrieved_pages": [r.chunk.page_number for r in retrieved_results], "is_valid": True}
-            )
+            return BuiltinSynthesizer.synthesize_answer(query, retrieved_results)
 
         messages = [{"role": "system", "content": system_prompt}]
 

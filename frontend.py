@@ -168,12 +168,18 @@ with st.sidebar:
     st.divider()
 
     # LLM Provider Configuration
-    st.markdown("### 🤖 LLM Provider Configuration")
+    st.markdown("### 🤖 AI Model & Provider")
     provider = st.selectbox(
-        "Provider",
-        options=["OpenAI (Cloud)", "Local (Ollama / LM Studio)", "Custom (Groq / OpenRouter)"],
+        "AI Engine",
+        options=[
+            "Built-in (Free / No Key Required)",
+            "Groq (Llama 3.3 70B - Free Key)",
+            "OpenAI (Cloud)",
+            "Local (Ollama / LM Studio)",
+            "Custom Endpoint"
+        ],
         index=0,
-        help="Select your AI model provider"
+        help="Choose between the built-in free document engine, Groq, OpenAI, or local models"
     )
 
     env_api_key = os.getenv("OPENAI_API_KEY", "")
@@ -182,14 +188,35 @@ with st.sidebar:
 
     active_base_url = None
     active_api_key = None
-    selected_model = "gpt-4o-mini"
+    selected_model = "builtin"
 
-    if provider == "OpenAI (Cloud)":
-        api_key_input = st.text_input(
-            "OpenAI API Key (optional override)",
+    if provider == "Built-in (Free / No Key Required)":
+        selected_model = "builtin-extractive-synthesizer"
+        active_api_key = None
+        active_base_url = None
+        st.caption("🟢 Built-in semantic document engine active (100% free, zero setup required)")
+
+    elif provider == "Groq (Llama 3.3 70B - Free Key)":
+        groq_key = st.text_input(
+            "Groq API Key (Free at console.groq.com)",
             value="",
             type="password",
-            help="Leave blank to use OPENAI_API_KEY from .env"
+            help="Free API key from console.groq.com (no credit card required)"
+        )
+        active_api_key = groq_key.strip() or env_api_key.strip() or None
+        active_base_url = "https://api.groq.com/openai/v1"
+        selected_model = "llama-3.3-70b-versatile"
+        if active_api_key:
+            st.caption("🟢 Groq Llama 3.3 70B configured")
+        else:
+            st.caption("🟡 Paste your free Groq key or use Built-in engine")
+
+    elif provider == "OpenAI (Cloud)":
+        api_key_input = st.text_input(
+            "OpenAI API Key",
+            value="",
+            type="password",
+            help="Leave blank to use OPENAI_API_KEY from environment"
         )
         active_api_key = api_key_input.strip() or env_api_key.strip() or None
         selected_model = st.selectbox(
@@ -198,45 +225,35 @@ with st.sidebar:
             index=0
         )
         active_base_url = env_base_url.strip() or None
+        if active_api_key:
+            st.caption(f"🟢 OpenAI `{selected_model}` active")
+        else:
+            st.caption("🟡 Paste OpenAI key or use Built-in engine")
 
     elif provider == "Local (Ollama / LM Studio)":
         local_base = st.text_input(
             "Local Base URL",
             value=env_base_url or "http://localhost:11434/v1",
-            help="Ollama default is http://localhost:11434/v1, LM Studio is http://localhost:1234/v1"
+            help="Ollama is http://localhost:11434/v1, LM Studio is http://localhost:1234/v1"
         )
         selected_model = st.text_input(
             "Model Name",
             value="llama3.2",
-            help="Ensure this model is installed in your local Ollama or LM Studio"
+            help="Ensure this model is installed locally (e.g. ollama run llama3.2)"
         )
         active_base_url = local_base.strip()
         active_api_key = "local-key-not-required"
+        st.caption(f"🟢 Local endpoint: `{selected_model}`")
 
-    elif provider == "Custom (Groq / OpenRouter)":
+    elif provider == "Custom Endpoint":
         custom_base = st.text_input(
             "Base URL",
-            value=env_base_url or "https://api.groq.com/openai/v1",
-            help="Base URL for Groq, OpenRouter, or other OpenAI-compatible endpoints"
+            value=env_base_url or "https://api.groq.com/openai/v1"
         )
-        custom_key = st.text_input(
-            "API Key",
-            value="",
-            type="password",
-            help="Provider API Key"
-        )
-        selected_model = st.text_input(
-            "Model Name",
-            value="llama-3.3-70b-versatile",
-            help="Model identifier on the provider platform"
-        )
+        custom_key = st.text_input("API Key", type="password")
+        selected_model = st.text_input("Model Identifier", value="llama-3.3-70b-versatile")
         active_base_url = custom_base.strip()
         active_api_key = custom_key.strip() or env_api_key.strip() or None
-
-    if active_api_key or (active_base_url and "localhost" in active_base_url):
-        st.caption(f"🟢 Configured: `{selected_model}`")
-    else:
-        st.caption("🟡 Running in Retrieval Preview Mode (no key configured)")
 
     st.divider()
 
