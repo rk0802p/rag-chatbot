@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.venv/
+venv/
+*.tmp
+*.log
+.git/
+.gitignore
+tests/
+faiss_db/
+vector_store/
+*.index
+*.meta.json

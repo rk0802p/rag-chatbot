@@ -1,0 +1,30 @@
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environments & secrets
+.env
+.venv/
+venv/
+ENV/
+
+# Pickles & unsafe serialization
+*.pkl
+*.pickle
+
+# Dynamic vector stores and local indexes
+vector_store/
+*.index
+*.meta.json
+faiss_index.pkl
+
+# Temporary and log files
+*.tmp
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db
