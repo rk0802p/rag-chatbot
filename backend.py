@@ -890,10 +890,10 @@ class BuiltinSynthesizer:
 
         # Format high-precision markdown answer
         lines = []
-        lines.append(f"### 💡 Direct Answer\n> **{top_sentence['text']}** [Page {top_sentence['page']}]\n")
+        lines.append(f"### Direct Answer\n> **{top_sentence['text']}** [Page {top_sentence['page']}]\n")
 
         if support_points:
-            lines.append("### 📌 Key Details & Specifications")
+            lines.append("### Key Details & Specifications")
             for sp in support_points:
                 lines.append(f"• **[Page {sp['page']}]**: {sp['text']}")
 
