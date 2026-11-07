@@ -1,14 +1,14 @@
 # 📄 RAG BOT — High-Precision Conversational PDF Assistant
 
-[![Tests](https://img.shields.io/badge/pytest-23%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/pytest-26%20passed-brightgreen.svg)]()
 [![Retrieval Benchmark](https://img.shields.io/badge/MRR-1.000-blue.svg)]()
-[![P@1 Accuracy](https://img.shields.io/badge/Top--1%20Accuracy-100%25-blue.svg)]()
+[![Retrieval Accuracy](https://img.shields.io/badge/Top--1%20Accuracy-100%25%20(25--question%20eval)-blue.svg)]()
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.13-blue.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)]()
 [![UI](https://img.shields.io/badge/UI-Streamlit-red.svg)]()
 [![Vector DB](https://img.shields.io/badge/vector%20store-FAISS%20Native-orange.svg)]()
 
-A modular, production-tested **Retrieval-Augmented Generation (RAG)** chatbot engineered to answer questions grounded strictly in uploaded PDF documents with verifiable, automated page citations and zero hallucinated facts.
+A well-tested, modular **Retrieval-Augmented Generation (RAG)** application engineered to answer questions grounded strictly in uploaded PDF documents with verifiable, automated page citations and zero hallucinated facts.
 
 ---
 
@@ -137,7 +137,7 @@ Open `http://localhost:8501` in your browser.
 
 ## 🐳 Docker Deployment
 
-The repository includes a production-ready, non-root `Dockerfile`:
+The repository includes a multi-stage, non-root `Dockerfile`:
 
 ```bash
 # Build Docker image
@@ -153,6 +153,8 @@ Open `http://localhost:8501` to use the containerized application.
 
 ## 🧪 Testing & Empirical Benchmarks
 
+The project is well-tested (26 automated unit & integration tests) and evaluated against a deterministic information retrieval benchmark to provide verifiable, reproducible performance metrics.
+
 ### 1. Automated Test Suite (Pytest)
 
 Run the 26 automated unit and integration tests (validating extraction, chunking, embeddings, indexing, persistence, retrieval, citation verification, prompt injection defense, BM25 scoring, acronym expansion, and mocked LLM generation):
@@ -165,17 +167,17 @@ python -m pytest -v
 
 ### 2. Information Retrieval & Groundedness Benchmark
 
-Run the deterministic benchmark on a synthetic 4-page specification:
+Evaluated over a technical specification document across a 25-question evaluation set (20 factual queries spanning architecture, hardware requirements, consensus, and SLAs, plus 5 out-of-domain and missing-fact refusal queries):
 
 ```bash
 python evaluate_rag.py
 ```
 
-**Empirical Benchmark Results:**
-- **Top-1 Page Accuracy ($P@1$):** `100.0% (5/5)`
-- **Top-K Page Recall ($\text{Recall}@4$):** `100.0% (5/5)`
+**Empirical Benchmark Results (25-Question Evaluation Set):**
+- **Top-1 Retrieval Accuracy ($P@1$):** `100.0% (20/20)` on factual queries across technical PDF pages
+- **Top-K Retrieval Recall ($\text{Recall}@4$):** `100.0% (20/20)`
 - **Mean Reciprocal Rank (MRR):** `1.000`
-- **Out-of-Domain Refusal Accuracy:** `100.0% (2/2)`
+- **Out-of-Domain Refusal Accuracy:** `100.0% (5/5)` (correctly rejects unrelated subjects and flags unmentioned entity attributes)
 
 ### 3. Reproducible Performance Benchmark
 
@@ -214,7 +216,7 @@ rag-chatbot/
 ├── readme.md                  # Project documentation
 │
 ├── tests/
-│   └── test_backend.py        # Comprehensive test suite (23 unit & integration test cases)
+│   └── test_backend.py        # Comprehensive test suite (26 unit & integration test cases)
 │
 └── faiss_db/                  # Legacy archived artifacts (from initial prototype)
     ├── README.md              # Architectural note documenting legacy vs native storage
@@ -234,7 +236,9 @@ rag-chatbot/
 
 ## 🗺️ Future Roadmap
 
-- [ ] Hybrid Sparse-Dense Search (BM25 + FAISS with Reciprocal Rank Fusion).
-- [ ] Cross-Encoder Reranking (`ms-marco-MiniLM-L-6-v2`) for complex reasoning queries.
+- [x] Hybrid Sparse-Dense Search (BM25Okapi + FAISS IndexFlatIP).
+- [x] Automated Acronym Resolution & Contextual Query Expansion.
+- [x] Zero-Key Direct Answer Extractor & Built-in Saliency Synthesizer.
+- [ ] Cross-Encoder Reranking (`ms-marco-MiniLM-L-6-v2`) for complex multi-hop reasoning.
 - [ ] Multi-document persistent collections with metadata filtering.
 - [ ] OCR pipeline integration for image-based PDFs.

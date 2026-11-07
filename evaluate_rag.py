@@ -100,10 +100,11 @@ def run_benchmark():
     store.add_chunks(chunks, embeddings)
     print(f"  -> Extracted {len(pages)} pages | Created {len(chunks)} chunks | Indexed {store.index.ntotal} vectors\n")
 
-    # 2. Benchmark Test Suite
+    # 2. Benchmark Test Suite (25 Comprehensive Test Cases)
     test_cases: List[Dict[str, Any]] = [
+        # --- Page 1: Overview & Performance SLA ---
         {
-            "id": "TC-1",
+            "id": "TC-01",
             "category": "Direct Factual Retrieval (Page 1)",
             "query": "What is the sustained write throughput and p99 latency SLA?",
             "expected_page": 1,
@@ -111,31 +112,49 @@ def run_benchmark():
             "type": "factual"
         },
         {
-            "id": "TC-2",
-            "category": "Storage & Compression (Page 2)",
+            "id": "TC-02",
+            "category": "Hardware Resource Requirements (Page 1)",
+            "query": "What are the hardware and DDR5 RAM resource requirements per cluster?",
+            "expected_page": 1,
+            "expected_keywords": ["64GB", "DDR5", "NVMe"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-03",
+            "category": "System Architecture Classification (Page 1)",
+            "query": "What type of stream processing engine is Project Nebula?",
+            "expected_page": 1,
+            "expected_keywords": ["partition-tolerant", "stream", "processing"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-04",
+            "category": "Specification Version Metadata (Page 1)",
+            "query": "What is the documented specification version and classification level?",
+            "expected_page": 1,
+            "expected_keywords": ["2.4", "Internal Engineering"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-05",
+            "category": "Node Allocation (Page 1)",
+            "query": "How many NVMe SSD nodes are required per cluster in resource allocation?",
+            "expected_page": 1,
+            "expected_keywords": ["16", "NVMe", "nodes"],
+            "type": "factual"
+        },
+
+        # --- Page 2: Storage Subsystem & Data Compaction ---
+        {
+            "id": "TC-06",
+            "category": "Storage Engine & Compression (Page 2)",
             "query": "What storage engine and compression algorithm are utilized?",
             "expected_page": 2,
             "expected_keywords": ["Log-Structured", "LSM", "Zstandard", "zstd"],
             "type": "factual"
         },
         {
-            "id": "TC-3",
-            "category": "Consensus & Transport Security (Page 3)",
-            "query": "Which consensus protocol and transport encryption are used?",
-            "expected_page": 3,
-            "expected_keywords": ["Raft", "TLS 1.3", "mTLS"],
-            "type": "factual"
-        },
-        {
-            "id": "TC-4",
-            "category": "Multi-Page / SLA Recovery Objectives (Page 4)",
-            "query": "What are the RTO and RPO recovery objectives in disaster recovery?",
-            "expected_page": 4,
-            "expected_keywords": ["RTO", "15 minutes", "RPO", "30 seconds"],
-            "type": "factual"
-        },
-        {
-            "id": "TC-5",
+            "id": "TC-07",
             "category": "Distractor Terminology Discrimination (Page 2)",
             "query": "Does the system support B-Tree indexing for relational tables?",
             "expected_page": 2,
@@ -143,16 +162,150 @@ def run_benchmark():
             "type": "factual"
         },
         {
-            "id": "TC-6",
-            "category": "Out-of-Domain Query (Completely Absent Subject)",
+            "id": "TC-08",
+            "category": "Compaction Strategy & Write Amplification (Page 2)",
+            "query": "What compaction strategy and Bloom filter structures reduce write amplification?",
+            "expected_page": 2,
+            "expected_keywords": ["Leveled Compaction", "Bloom filters"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-09",
+            "category": "Compression Benchmark Metric (Page 2)",
+            "query": "What is the compression ratio achieved by the Zstandard zstd engine at level 3?",
+            "expected_page": 2,
+            "expected_keywords": ["3.4x", "compression ratio"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-10",
+            "category": "Architectural Rationale (Page 2)",
+            "query": "Why are standard B-Trees replaced by LSM in Nebula storage subsystem?",
+            "expected_page": 2,
+            "expected_keywords": ["write amplification", "NVMe"],
+            "type": "factual"
+        },
+
+        # --- Page 3: Distributed Consensus & Network Security ---
+        {
+            "id": "TC-11",
+            "category": "Consensus Protocol & Transport Security (Page 3)",
+            "query": "Which consensus protocol and transport encryption are used?",
+            "expected_page": 3,
+            "expected_keywords": ["Raft", "TLS 1.3", "mTLS"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-12",
+            "category": "Heartbeat Timing & Failover Latency (Page 3)",
+            "query": "What is the calibrated heartbeat interval and target failover latency in consensus?",
+            "expected_page": 3,
+            "expected_keywords": ["150 milliseconds", "500 milliseconds"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-13",
+            "category": "Mutual Authentication (Page 3)",
+            "query": "Does node-to-node network transport support mutual TLS mTLS certificate authentication?",
+            "expected_page": 3,
+            "expected_keywords": ["mTLS", "mutual certificate", "authentication"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-14",
+            "category": "Cryptographic Protocol Version (Page 3)",
+            "query": "Which cryptographic protocol version TLS secures inter-node communication?",
+            "expected_page": 3,
+            "expected_keywords": ["TLS 1.3", "encrypted"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-15",
+            "category": "Replication & Leader Election (Page 3)",
+            "query": "How does the system perform state machine replication with Multi-Raft protocol?",
+            "expected_page": 3,
+            "expected_keywords": ["Multi-Raft", "Leader election", "replication"],
+            "type": "factual"
+        },
+
+        # --- Page 4: Operational Runbook & Disaster Recovery ---
+        {
+            "id": "TC-16",
+            "category": "Disaster Recovery SLA Objectives (Page 4)",
+            "query": "What are the RTO and RPO recovery objectives in disaster recovery?",
+            "expected_page": 4,
+            "expected_keywords": ["RTO", "15 minutes", "RPO", "30 seconds"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-17",
+            "category": "Backup Automation Schedule (Page 4)",
+            "query": "At what time UTC are automated snapshot backups scheduled nightly?",
+            "expected_page": 4,
+            "expected_keywords": ["02:00 UTC", "nightly", "snapshot"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-18",
+            "category": "Automated Cross-AZ Failover Trigger (Page 4)",
+            "query": "How many consecutive missed heartbeats trigger automated cross-AZ failover?",
+            "expected_page": 4,
+            "expected_keywords": ["3 consecutive", "heartbeats", "failover"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-19",
+            "category": "Data Loss Bounding SLA (Page 4)",
+            "query": "What is the maximum tolerable data loss window defined by the RPO SLA?",
+            "expected_page": 4,
+            "expected_keywords": ["30 seconds", "RPO", "data loss"],
+            "type": "factual"
+        },
+        {
+            "id": "TC-20",
+            "category": "Operational Runbook Procedure (Page 4)",
+            "query": "What is the disaster recovery operational runbook procedure for failover across zones?",
+            "expected_page": 4,
+            "expected_keywords": ["Runbook", "Disaster Recovery", "failover"],
+            "type": "factual"
+        },
+
+        # --- Negative, Distractor & Out-of-Domain Refusals ---
+        {
+            "id": "TC-21",
+            "category": "Out-of-Domain: Financial Markets",
             "query": "What is the market capitalization and stock price of Tesla or Apple?",
             "expected_page": None,
             "expected_keywords": [],
             "type": "out_of_domain"
         },
         {
-            "id": "TC-7",
-            "category": "Ambiguous / Missing Document Attribute (Entity Match)",
+            "id": "TC-22",
+            "category": "Out-of-Domain: Culinary Arts",
+            "query": "What are the culinary ingredients and baking instructions for a chocolate soufflé?",
+            "expected_page": None,
+            "expected_keywords": [],
+            "type": "out_of_domain"
+        },
+        {
+            "id": "TC-23",
+            "category": "Out-of-Domain: Zoology",
+            "query": "What is the average gestation period of the African elephant in zoology?",
+            "expected_page": None,
+            "expected_keywords": [],
+            "type": "out_of_domain"
+        },
+        {
+            "id": "TC-24",
+            "category": "Out-of-Domain: Chemistry",
+            "query": "What is the chemical formula and molecular mass of sulfuric acid?",
+            "expected_page": None,
+            "expected_keywords": [],
+            "type": "out_of_domain"
+        },
+        {
+            "id": "TC-25",
+            "category": "Missing Fact: Unmentioned Personnel Attribute",
             "query": "Who is the Chief Executive Officer (CEO) and founder of Project Nebula?",
             "expected_page": None,
             "expected_keywords": [],
